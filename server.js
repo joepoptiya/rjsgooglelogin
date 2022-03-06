@@ -1,7 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const path = require("path");
 const { OAuth2Client } = require("google-auth-library");
-const { useImperativeHandle } = require("react");
 
 dotenv.config();
 const client = new OAuth2Client(process.env.REACT_APP_GOOGLE_CLIENT_ID);
@@ -19,7 +19,6 @@ function upsert(array, item) {
 }
 
 app.post("/api/google-login", async (req, res) => {
-  console.log("in google login {process.env.CLIENT_ID}");
   const { token } = req.body;
   const ticket = await client.verifyIdToken({
     idToken: token,
@@ -30,6 +29,11 @@ app.post("/api/google-login", async (req, res) => {
   upsert(users, { name, email, picture });
   res.status(201).json({ name, email, picture });
 });
+
+app.use(express.static(path.join(__dirname, "/build")));
+app.get("*", (req, res) =>
+  res.sendFile(path.join(__dirname, "/build/index.html"))
+);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(
